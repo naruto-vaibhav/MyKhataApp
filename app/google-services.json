@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018772380323",
+    "project_id": "mykhata-99514",
+    "storage_bucket": "mykhata-99514.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018772380323:android:f1d6ce06510fde8e9ebd16",
+        "android_client_info": {
+          "package_name": "com.naruto.managekhata"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB27p4z_wsAyWOxwTc7Ssh29b3XlSkeFaE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
