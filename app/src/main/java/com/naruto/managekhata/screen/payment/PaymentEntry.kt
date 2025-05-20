@@ -46,6 +46,7 @@ fun PaymentEntry(
 
     var name by rememberSaveable { mutableStateOf("") }
     var amount by rememberSaveable { mutableStateOf("") }
+    var days by rememberSaveable { mutableStateOf("") }
     var interest by rememberSaveable { mutableStateOf("") }
     var selectedDate by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
 
@@ -78,8 +79,10 @@ fun PaymentEntry(
                             id = UUID.randomUUID().toString(),
                             name = name,
                             invoiceAmount = amount.toDouble(),
+                            invoiceDate = selectedDate,
                             dueAmount = amount.toDouble(),
-                            date = selectedDate
+                            dueDate = selectedDate,
+                            interest = interest.toDouble()
                         )
 //                        onSaveClick(invoice)
                         popUp()

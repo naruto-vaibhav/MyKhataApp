@@ -9,22 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.google.firebase.BuildConfig
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import com.naruto.managekhata.navigation.NavigationGraphComponent
 import com.naruto.managekhata.navigation.navGraph
-import com.naruto.managekhata.screen.LoginScreen
-import com.naruto.managekhata.screen.home.HomeScreen
-import com.naruto.managekhata.screen.launch.SplashScreen
 import com.naruto.managekhata.ui.theme.ManageKhataTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,6 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        configureFirebaseServices()
         setContent {
             ManageKhataTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
@@ -50,6 +47,18 @@ class MainActivity : ComponentActivity() {
 
             }
         }
+    }
+    private fun configureFirebaseServices() {
+        if (BuildConfig.DEBUG) {
+            Firebase.auth.useEmulator(LOCALHOST, AUTH_PORT)
+            Firebase.firestore.useEmulator(LOCALHOST, FIRESTORE_PORT)
+        }
+    }
+
+    companion object {
+        const val LOCALHOST = "10.0.2.2"
+        const val AUTH_PORT = 9099
+        const val FIRESTORE_PORT = 8080
     }
 }
 
