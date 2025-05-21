@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.model.Invoice
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -40,7 +41,8 @@ import java.util.UUID
 @Composable
 fun PaymentEntry(
     invoiceId: String? = null,
-    popUp: () -> Unit
+    popUp: () -> Unit,
+    paymentEntryViewModel: PaymentEntryViewModel = hiltViewModel()
 ) {
     val isNewPaymentScreen = invoiceId==null
 
@@ -86,6 +88,7 @@ fun PaymentEntry(
                         )
 //                        onSaveClick(invoice)
                         popUp()
+                        paymentEntryViewModel.createInvoice(invoice)
                     } else {
                         Toast.makeText(context, "Please fill required fields", Toast.LENGTH_SHORT).show()
                     }
@@ -155,5 +158,5 @@ fun PaymentEntry(
 @Preview
 @Composable
 fun PaymentEntryPreview(){
-    PaymentEntry { }
+    PaymentEntry (popUp = { })
 }

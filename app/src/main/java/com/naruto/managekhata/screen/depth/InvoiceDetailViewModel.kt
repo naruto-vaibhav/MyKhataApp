@@ -12,8 +12,10 @@ class InvoiceDetailViewModel @Inject constructor(): MainViewModel() {
         id = "abcd",
         name = "Vishal",
         invoiceAmount = 1234.0,
+        invoiceDate = 1234,
         dueAmount = 2534.0,
-        date = 1234
+        dueDate = 1234,
+        interest = 2.0
     )
 
     fun getAllPayments(invoiceId: String) = List(10) {

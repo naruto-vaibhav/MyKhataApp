@@ -94,8 +94,10 @@ fun HomeScreen(
                 id = "abcd",
                 name = "Vishal",
                 invoiceAmount = 1234.0,
+                invoiceDate = 1234,
                 dueAmount = 2534.0,
-                date = 1234
+                dueDate = 1234,
+                interest = 2.0
             )
         }
 
@@ -128,7 +130,7 @@ private fun InvoiceCard(modifier: Modifier, invoice: Invoice){
                     fontSize = 18.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Text(invoice.date.toString(), fontSize = 12.sp)
+                Text(invoice.invoiceDate.toString(), fontSize = 12.sp)
             }
             Column(modifier = Modifier.weight(0.25f),
                 horizontalAlignment = Alignment.End) {
