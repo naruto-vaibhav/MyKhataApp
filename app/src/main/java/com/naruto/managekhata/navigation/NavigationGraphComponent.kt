@@ -17,7 +17,7 @@ sealed class NavigationGraphComponent {
     data object NavNewInvoiceScreen : NavigationGraphComponent()
 
     @Serializable
-    data class NavNewPaymentScreen(val invoiceId: String) : NavigationGraphComponent()
+    data class NavNewPaymentScreen(val invoiceId: String, val interestPercent: Double, val dueDate: Long) : NavigationGraphComponent()
 
     @Serializable
     data class NavInvoiceDetailScreen(val invoiceId: String) : NavigationGraphComponent()

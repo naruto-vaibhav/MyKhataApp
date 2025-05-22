@@ -17,6 +17,6 @@ open class MainViewModel: ViewModel() {
         )
 
     companion object {
-        const val ERROR_TAG = "MANAGE KHATA ERROR"
+        const val ERROR_TAG = "MANAGE_INVOICE_ERROR"
     }
 }

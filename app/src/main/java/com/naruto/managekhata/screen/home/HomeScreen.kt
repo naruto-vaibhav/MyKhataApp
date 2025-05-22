@@ -1,5 +1,7 @@
 package com.naruto.managekhata.screen.home
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,8 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,16 +40,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.navigation.NavigationGraphComponent
+import com.naruto.managekhata.ui.theme.DateFormatter
+
+const val TAG = "HomeScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun HomeScreen(
     navigate: (NavigationGraphComponent) -> Unit,
+    restartApp: (NavigationGraphComponent) -> Unit,
+    viewModel: HomeScreenViewModel = hiltViewModel()
 ){
-    var khataList = remember {
-        mutableStateListOf<Invoice>()
+    val invoices by viewModel.invoiceFlow.collectAsState()
+
+    LaunchedEffect(Unit) { viewModel.initialize(restartApp) }
+
+    DisposableEffect(Unit) {
+        Log.i(TAG, "HomeScreen")
+        viewModel.addInvoiceListener()
+        onDispose {
+            Log.i(TAG, "HomeScreen- onDispose")
+            viewModel.removeListener()
+        }
     }
 
     var showMenu by remember { mutableStateOf(false) }
@@ -74,7 +94,7 @@ fun HomeScreen(
                             text = { Text("Logout") },
                             onClick = {
                                 showMenu = false
-                                // Handle profile click
+                                viewModel.logout()
                             }
                         )
                     }
@@ -82,26 +102,24 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navigate(NavigationGraphComponent.NavNewInvoiceScreen) }, modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 32.dp)) {
+            FloatingActionButton(onClick = { navigate(NavigationGraphComponent.NavNewInvoiceScreen) }) {
                 Icon(Icons.Default.Add, contentDescription = "Add New Invoice")
             }
         }
     ) { paddingValues ->
-        val dummyList = List(20) {
-            Invoice(
-                id = "abcd",
-                name = "Vishal",
-                invoiceAmount = 1234.0,
-                invoiceDate = 1234,
-                dueAmount = 2534.0,
-                dueDate = 1234,
-                interest = 2.0
-            )
-        }
+//        val dummyList = List(20) {
+//            Invoice(
+//                id = "abcd",
+//                name = "Vishal",
+//                invoiceAmount = 1234.0,
+//                invoiceDate = 1234,
+//                dueAmount = 2534.0,
+//                dueDate = 1234,
+//                interest = 2.0
+//            )
+//        }
 
-        InvoiceListView(dummyList, paddingValues, navigate)
+        InvoiceListView(invoices, paddingValues, navigate)
     }
 }
 
@@ -114,14 +132,16 @@ fun InvoiceListView(items: List<Invoice>, paddingValues: PaddingValues, navigate
     ) {
         items(items.size) { ind ->
             InvoiceCard(modifier = Modifier.clickable {
-                navigate(NavigationGraphComponent.NavInvoiceDetailScreen(items[ind].id))
+                items[ind].id?.let{
+                    navigate(NavigationGraphComponent.NavInvoiceDetailScreen(it))
+                }
             },items[ind])
         }
     }
 }
 
 @Composable
-private fun InvoiceCard(modifier: Modifier, invoice: Invoice){
+private fun InvoiceCard(modifier: Modifier = Modifier, invoice: Invoice){
     OutlinedCard(modifier = modifier.wrapContentHeight().fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(16.dp, 16.dp)) {
@@ -130,7 +150,7 @@ private fun InvoiceCard(modifier: Modifier, invoice: Invoice){
                     fontSize = 18.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Text(invoice.invoiceDate.toString(), fontSize = 12.sp)
+                Text(DateFormatter.toFormatDate(invoice.invoiceDate), fontSize = 12.sp)
             }
             Column(modifier = Modifier.weight(0.25f),
                 horizontalAlignment = Alignment.End) {
@@ -144,19 +164,21 @@ private fun InvoiceCard(modifier: Modifier, invoice: Invoice){
 //@Preview
 //@Composable
 //private fun KhataEntryPreview(){
-//    val dummy = Invoice(
-//        id = "abcd",
-//        name = "Vishal",
-//        totalAmount = 1234,
-//        dueAmount = 2534,
-//        date = "25th Apr"
+//    val DEFAULT_INVOICE = Invoice(
+//        name = "Name",
+//        invoiceAmount = 0.0,
+//        invoiceDate = System.currentTimeMillis(),
+//        dueAmount = 0.0,
+//        dueDate = 0,
+//        interestPercentage = 0.0,
+//        interestAmount = 0.0
 //    )
-//    InvoiceCard(dummy)
+//    InvoiceCard(invoice = DEFAULT_INVOICE)
 //}
 
 
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-    HomeScreen { _ -> Unit}
+    HomeScreen({ _ -> Unit}, { _ -> Unit})
 }

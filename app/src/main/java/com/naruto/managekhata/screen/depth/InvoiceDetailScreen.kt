@@ -1,6 +1,7 @@
 package com.naruto.managekhata.screen.depth
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,25 +17,41 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.model.Payment
 import com.naruto.managekhata.navigation.NavigationGraphComponent
+import com.naruto.managekhata.screen.home.TAG
+import com.naruto.managekhata.ui.theme.DateFormatter
 
 @SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceDetailScreen(
     invoiceId: String,
-    navigate: (NavigationGraphComponent) -> Unit
+    navigate: (NavigationGraphComponent) -> Unit,
+    viewModel: InvoiceDetailViewModel = hiltViewModel()
 ) {
-    val viewModel = InvoiceDetailViewModel()
-    val invoice = viewModel.getInvoiceDetail(invoiceId)
-    val payments = viewModel.getAllPayments(invoiceId)
+//
+    val invoice = viewModel.invoice
+    val payments = viewModel.payment
+
+    DisposableEffect(Unit) {
+        Log.i(TAG, "InvoiceDetailScreen")
+        viewModel.addInvoiceDetailListener(invoiceId)
+        viewModel.addPaymentListener(invoiceId)
+        onDispose {
+            Log.i(TAG, "InvoiceDetailScreen- onDispose")
+            viewModel.removeListener()
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { navigate(NavigationGraphComponent.NavNewPaymentScreen(invoiceId)) }, modifier = Modifier
+            FloatingActionButton(onClick = { navigate(NavigationGraphComponent.NavNewPaymentScreen(invoiceId, invoice.value.interestPercentage, invoice.value.dueDate)) }, modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 32.dp)) {
 //                Icon(Icons.Default.Add, contentDescription = "Add Payment")
@@ -56,13 +73,12 @@ fun InvoiceDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Customer: ${invoice.name}")
-                    Text("Invoice Date: ${invoice.invoiceDate}")
-                    Text("Tenure: ${invoice.dueDate}")
-                    Text("Loan Amount: ₹${invoice.invoiceAmount}")
-                    val totalPaid = payments.sumOf { it.amount }
-                    val due = invoice.invoiceAmount - totalPaid
-                    Text("Due Amount: ₹$due")
+                    Text("Customer: ${invoice.value.name}")
+                    Text("Invoice Date: ${DateFormatter.toFormatDate(invoice.value.invoiceDate)}")
+                    Text("Due Date: ${DateFormatter.toFormatDate(invoice.value.dueDate)}")
+                    Text("Loan Amount: ₹${invoice.value.invoiceAmount}")
+                    Text("Due Amount: ₹${invoice.value.dueAmount}")
+                    Text("Net Interest Amount: ₹${invoice.value.interestAmount}")
                 }
             }
 
@@ -71,14 +87,14 @@ fun InvoiceDetailScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                items(payments.size) { index ->
+                items(payments.value.size) { index ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        PaymentCard(payments[index])
+                        PaymentCard(payments.value[index])
                     }
                 }
             }
@@ -91,7 +107,7 @@ private fun PaymentCard(payment: Payment){
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Text("${payment.date}")
+                Text(DateFormatter.toFormatDate(payment.date))
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text("Amount")

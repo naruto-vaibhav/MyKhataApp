@@ -31,20 +31,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.model.Invoice
+import com.naruto.managekhata.model.Payment
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PaymentEntry(
     invoiceId: String? = null,
+    interestPercent: Double = 0.0,
+    dueDate: Long = 0L,
     popUp: () -> Unit,
     paymentEntryViewModel: PaymentEntryViewModel = hiltViewModel()
 ) {
-    val isNewPaymentScreen = invoiceId==null
+    val isNewInvoiceScreen = invoiceId==null
 
     var name by rememberSaveable { mutableStateOf("") }
     var amount by rememberSaveable { mutableStateOf("") }
@@ -53,7 +55,6 @@ fun PaymentEntry(
     var selectedDate by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
 
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
-
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance().apply { timeInMillis = selectedDate }
@@ -76,19 +77,36 @@ fun PaymentEntry(
                     .fillMaxWidth()
                     .padding(start = 32.dp),
                 onClick = {
-                    if (name.isNotBlank() && amount.isNotBlank()) {
-                        val invoice = Invoice(
-                            id = UUID.randomUUID().toString(),
-                            name = name,
-                            invoiceAmount = amount.toDouble(),
-                            invoiceDate = selectedDate,
-                            dueAmount = amount.toDouble(),
-                            dueDate = selectedDate,
-                            interest = interest.toDouble()
-                        )
-//                        onSaveClick(invoice)
-                        popUp()
-                        paymentEntryViewModel.createInvoice(invoice)
+                    if (amount.isNotBlank()) {
+                        if (isNewInvoiceScreen){
+                            val invoiceDetail = Invoice(
+                                name = name,
+                                invoiceAmount = amount.toDouble(),
+                                invoiceDate = selectedDate,
+                                dueAmount = amount.toDouble(),
+                                dueDate = getDueDate(selectedDate, days.toInt()),
+                                interestPercentage = interest.toDouble()
+                            )
+                            paymentEntryViewModel.createInvoice(invoiceDetail) { popUp() }
+                        }
+                        else{
+                            val paymentAmount = amount.toDouble()
+                            val interestAmount = getInterestAmount(
+                                paymentAmount,
+                                interestPercent,
+                                selectedDate,
+                                dueDate
+                            )
+                            val payment = Payment(
+                                amount = amount.toDouble(),
+                                interest = interestAmount,
+                                date = selectedDate
+                            )
+                            invoiceId?.let {
+                                paymentEntryViewModel.createPayment(invoiceId, payment) { popUp() }
+                            }
+                        }
+
                     } else {
                         Toast.makeText(context, "Please fill required fields", Toast.LENGTH_SHORT).show()
                     }
@@ -105,7 +123,7 @@ fun PaymentEntry(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (isNewPaymentScreen){
+            if (isNewInvoiceScreen){
                 TextField(
                     value = name,
                     onValueChange = { name = it },
@@ -122,10 +140,10 @@ fun PaymentEntry(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (isNewPaymentScreen){
+            if (isNewInvoiceScreen){
                 TextField(
-                    value = interest,
-                    onValueChange = { interest = it },
+                    value = days,
+                    onValueChange = { days = it },
                     label = { Text("Days") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -155,6 +173,26 @@ fun PaymentEntry(
     }
 }
 
+private fun getDueDate(invoiceDate: Long, days: Int) = invoiceDate + days.toTimeMillis()
+
+fun Int.toTimeMillis() = this * 24 * 60 * 60 * 1000
+
+private fun getInterestAmount(paymentAmount: Double, interest: Double, paymentDate: Long, dueDate: Long):Double {
+    val days = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(dueDate - paymentDate)
+    return paymentAmount*days*interest*0.01
+}
+
+
+//fun main(){
+//    val dueDate: Long = System.currentTimeMillis()
+//    val paymentDate: Long = System.currentTimeMillis() - 2*24*60*60*1000
+//    println(DateFormatter.toFormatDate(dueDate))
+//    println(DateFormatter.toFormatDate(paymentDate))
+//
+////    val diffInMillis = date2Millis - date1Millis
+////    val diffInDays =
+//    println(getInterestAmount(2000.0, 10.0, paymentDate, dueDate))
+//}
 @Preview
 @Composable
 fun PaymentEntryPreview(){

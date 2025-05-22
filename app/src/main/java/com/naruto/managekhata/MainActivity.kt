@@ -15,9 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.BuildConfig
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.naruto.managekhata.navigation.NavigationGraphComponent
 import com.naruto.managekhata.navigation.navGraph
 import com.naruto.managekhata.ui.theme.ManageKhataTheme
@@ -28,8 +25,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-//        configureFirebaseServices()
-//        Firebase.firestore.useEmulator(LOCALHOST, FIRESTORE_PORT)
         setContent {
             ManageKhataTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
@@ -47,18 +42,6 @@ class MainActivity : ComponentActivity() {
 
             }
         }
-    }
-    private fun configureFirebaseServices() {
-        if (BuildConfig.DEBUG) {
-//            Firebase.auth.useEmulator(LOCALHOST, AUTH_PORT)
-//            Firebase.firestore.useEmulator(LOCALHOST, FIRESTORE_PORT)
-        }
-    }
-
-    companion object {
-        const val LOCALHOST = "10.0.2.2"
-        const val AUTH_PORT = 9099
-        const val FIRESTORE_PORT = 8080
     }
 }
 

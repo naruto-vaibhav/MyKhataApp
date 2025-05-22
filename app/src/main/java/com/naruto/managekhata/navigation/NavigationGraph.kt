@@ -3,7 +3,6 @@ package com.naruto.managekhata.navigation
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.naruto.managekhata.AppState
 import com.naruto.managekhata.screen.LoginScreen
@@ -16,6 +15,7 @@ fun NavGraphBuilder.navGraph(appState: AppState){
     composable<NavigationGraphComponent.NavHomeScreen> {
         HomeScreen(
             navigate = { route -> appState.navigate(route)},
+            restartApp = { route -> appState.clearAndNavigate(route) }
         )
     }
 
@@ -37,6 +37,8 @@ fun NavGraphBuilder.navGraph(appState: AppState){
         val arg = it.toRoute<NavigationGraphComponent.NavNewPaymentScreen>()
         PaymentEntry(
             invoiceId = arg.invoiceId,
+            interestPercent = arg.interestPercent,
+            dueDate = arg.dueDate,
             popUp = { appState.popUp() }
         )
     }
