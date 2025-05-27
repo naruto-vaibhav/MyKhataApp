@@ -39,6 +39,7 @@ fun NavGraphBuilder.navGraph(appState: AppState){
             invoiceId = arg.invoiceId,
             interestPercent = arg.interestPercent,
             dueDate = arg.dueDate,
+            dueAmount = arg.dueAmount,
             popUp = { appState.popUp() }
         )
     }

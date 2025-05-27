@@ -4,19 +4,19 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.model.Payment
+import com.naruto.managekhata.ui.elements.OutlinedTextFieldWithError
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -43,6 +44,7 @@ fun PaymentEntry(
     invoiceId: String? = null,
     interestPercent: Double = 0.0,
     dueDate: Long = 0L,
+    dueAmount: Double = 0.0,
     popUp: () -> Unit,
     paymentEntryViewModel: PaymentEntryViewModel = hiltViewModel()
 ) {
@@ -53,6 +55,8 @@ fun PaymentEntry(
     var days by rememberSaveable { mutableStateOf("") }
     var interest by rememberSaveable { mutableStateOf("") }
     var selectedDate by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
+    var isValidAmount by rememberSaveable { mutableStateOf(true) }
+    var isValidPaymentDate by rememberSaveable { mutableStateOf(true) }
 
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
@@ -71,11 +75,12 @@ fun PaymentEntry(
     )
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
+        bottomBar = {
+            Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 32.dp),
+                    .padding(16.dp)
+                    .defaultMinSize(minHeight = 56.dp),
                 onClick = {
                     if (amount.isNotBlank()) {
                         if (isNewInvoiceScreen){
@@ -110,7 +115,8 @@ fun PaymentEntry(
                     } else {
                         Toast.makeText(context, "Please fill required fields", Toast.LENGTH_SHORT).show()
                     }
-                }
+                },
+                shape = FloatingActionButtonDefaults.shape,
             ) {
                 Text("Save")
             }
@@ -124,53 +130,69 @@ fun PaymentEntry(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (isNewInvoiceScreen){
-                TextField(
+                OutlinedTextFieldWithError(
                     value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Customer Name") },
+                    onValueChange = { name = it},
+                    label = "Customer Name",
+                    isError = false,
+                    errorMessage = "",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            TextField(
+            OutlinedTextFieldWithError(
                 value = amount,
-                onValueChange = { amount = it },
-                label = { Text("Loan Amount (₹)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = {
+                    amount = it
+                    isValidAmount = if (!isNewInvoiceScreen) isValidAmount(dueAmount, amount) else true
+                                },
+                label = "Amount",
+                isError = !isValidAmount,
+                errorMessage = "Payment cannot be more than Due Amount",
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             if (isNewInvoiceScreen){
-                TextField(
+                OutlinedTextFieldWithError(
                     value = days,
-                    onValueChange = { days = it },
-                    label = { Text("Days") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = { days = it},
+                    label = "Days",
+                    isError = false,
+                    errorMessage = "",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-                TextField(
+                OutlinedTextFieldWithError(
                     value = interest,
-                    onValueChange = { interest = it },
-                    label = { Text("Interest (%)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = { interest = it},
+                    label = "Interest",
+                    isError = false,
+                    errorMessage = "",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            OutlinedTextField(
+            OutlinedTextFieldWithError(
                 value = dateFormat.format(Date(selectedDate)),
                 onValueChange = {},
+                label = "Select Date",
+                isError = false,
+                errorMessage = "",
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Select Date") },
-                enabled = false, // prevent manual editing
                 trailingIcon = {
                     IconButton(onClick = { datePickerDialog.show() }) {
                         Icon(Icons.Default.DateRange, contentDescription = "Pick Date")
                     }
-                }
+                },
+                enabled = false
             )
         }
     }
+}
+
+private fun isValidAmount(dueAmount: Double, enteredAmount: String): Boolean {
+    return enteredAmount.toDoubleOrNull()?.let { it<=dueAmount } ?: true
 }
 
 private fun getDueDate(invoiceDate: Long, days: Int) = invoiceDate + days.toTimeMillis()
