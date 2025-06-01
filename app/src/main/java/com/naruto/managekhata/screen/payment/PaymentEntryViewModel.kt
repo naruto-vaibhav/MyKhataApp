@@ -22,6 +22,12 @@ class PaymentEntryViewModel @Inject constructor(private val storageService: Stor
         }
     }
 
+    fun getPayment(invoiceId:String, paymentId: String,  onSuccess: (Payment)->Unit){
+        launchCatching {
+            storageService.getPayment(invoiceId, paymentId)?.let(onSuccess)
+        }
+    }
+
     fun getInvoice(invoiceId: String, onSuccess: (Invoice)->Unit){
         launchCatching {
             storageService.getInvoiceDetail(invoiceId)?.let(onSuccess)

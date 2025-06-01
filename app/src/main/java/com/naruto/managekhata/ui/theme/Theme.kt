@@ -17,13 +17,13 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = LightBlue,
+    primary = PrimaryBlue,
     onPrimary = Color.White,
     background = Color(0xFFF6F6F6),
     surface = Color.White,
     onSurface = Color.Black,
-    primaryContainer = LightBlue.copy(alpha = 0.15f),
-    onPrimaryContainer = LightBlue
+    primaryContainer = LightBlue,
+    onPrimaryContainer = PrimaryBlue
 )
 
 @Composable

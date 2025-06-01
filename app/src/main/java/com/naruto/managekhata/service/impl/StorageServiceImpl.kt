@@ -22,10 +22,34 @@ class StorageServiceImpl @Inject constructor(private val auth: AccountService) :
         ).add(invoice).await()
     }
 
-    override suspend fun createPayment(invoiceId: String, payment: Payment) {
+    override suspend fun deleteInvoice(invoiceId: String) {
         Firebase.firestore.collection(USERS_COLLECTION).document(auth.currentUserId).collection(
             INVOICES_COLLECTION
-        ).document(invoiceId).collection(PAYMENTS_COLLECTION).add(payment)
+        ).document(invoiceId).delete().await()
+    }
+
+    override suspend fun createPayment(invoiceId: String, payment: Payment) {
+        if (payment.id == null){
+            Firebase.firestore.collection(USERS_COLLECTION).document(auth.currentUserId).collection(
+                INVOICES_COLLECTION
+            ).document(invoiceId).collection(PAYMENTS_COLLECTION).add(payment)
+        }
+        else{
+            Firebase.firestore.collection(USERS_COLLECTION).document(auth.currentUserId).collection(
+                INVOICES_COLLECTION
+            ).document(invoiceId).collection(PAYMENTS_COLLECTION).document(payment.id).set(payment).await()
+        }
+    }
+
+    override suspend fun getPayment(invoiceId: String, paymentId: String): Payment? =
+        Firebase.firestore.collection(USERS_COLLECTION).document(auth.currentUserId).collection(
+            INVOICES_COLLECTION
+        ).document(invoiceId).collection(PAYMENTS_COLLECTION).document(paymentId).get().await().toObject(Payment::class.java)
+
+    override suspend fun deletePayment(invoiceId: String, paymentId: String) {
+        Firebase.firestore.collection(USERS_COLLECTION).document(auth.currentUserId).collection(
+            INVOICES_COLLECTION
+        ).document(invoiceId).collection(PAYMENTS_COLLECTION).document(paymentId).delete().await()
     }
 
     override suspend fun updateInvoice(invoice: Invoice) {

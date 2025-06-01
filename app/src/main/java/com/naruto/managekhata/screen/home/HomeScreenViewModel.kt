@@ -8,6 +8,7 @@ import com.naruto.managekhata.service.AccountService
 import com.naruto.managekhata.service.StorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,6 +16,15 @@ class HomeScreenViewModel @Inject constructor(
     private val accountService: AccountService,
     private val storageService: StorageService):MainViewModel() {
     val invoiceFlow = MutableStateFlow<List<Invoice>>(emptyList())
+
+    private val _deleteIdsFlow = MutableStateFlow<MutableSet<String>>(mutableSetOf())
+    val deleteIdsFlow = _deleteIdsFlow
+
+    fun updateDeleteIdsFlow(id:String){
+        _deleteIdsFlow.value = _deleteIdsFlow.value.toMutableSet().apply {
+            if (this.contains(id)) remove(id) else add(id)
+        }.toMutableSet()
+    }
 
     fun initialize(restartApp: (NavigationGraphComponent) -> Unit) {
         launchCatching {
@@ -32,6 +42,12 @@ class HomeScreenViewModel @Inject constructor(
                 Log.i(TAG, "addInvoiceListener - $it")
                 invoiceFlow.value = it
             }
+        }
+    }
+
+    fun deleteInvoices(invoicesId: List<String>) {
+        launchCatching {
+            invoicesId.forEach { launch { storageService.deleteInvoice(it) } }
         }
     }
 

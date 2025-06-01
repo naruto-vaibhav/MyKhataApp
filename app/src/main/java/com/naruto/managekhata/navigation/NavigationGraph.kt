@@ -43,6 +43,17 @@ fun NavGraphBuilder.navGraph(appState: AppState){
             popUp = { appState.popUp() }
         )
     }
+    composable<NavigationGraphComponent.EditPaymentScreen> {
+        val arg = it.toRoute<NavigationGraphComponent.EditPaymentScreen>()
+        PaymentEntry(
+            invoiceId = arg.invoiceId,
+            paymentId = arg.paymentId,
+            interestPercent = arg.interestPercent,
+            dueDate = arg.dueDate,
+            dueAmount = arg.dueAmount,
+            popUp = { appState.popUp() }
+        )
+    }
 
     composable<NavigationGraphComponent.NavLoginScreen> {
         LoginScreen(Modifier, navigateAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) })

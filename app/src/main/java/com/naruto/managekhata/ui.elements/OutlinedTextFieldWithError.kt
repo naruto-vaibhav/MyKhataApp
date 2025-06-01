@@ -27,7 +27,8 @@ fun OutlinedTextFieldWithError(
     modifier: Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     trailingIcon: @Composable (() -> Unit)? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    singleLine: Boolean = true
 ) {
     Column(modifier = modifier) {
         TextField(
@@ -47,6 +48,7 @@ fun OutlinedTextFieldWithError(
                 disabledIndicatorColor = Color.Transparent,
                 disabledContainerColor = Color.White
             ),
+            singleLine = singleLine,
             keyboardOptions = keyboardOptions,
             trailingIcon = trailingIcon,
             enabled = enabled

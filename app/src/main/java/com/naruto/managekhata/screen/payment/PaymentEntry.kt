@@ -1,12 +1,15 @@
 package com.naruto.managekhata.screen.payment
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -18,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,18 +34,24 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.naruto.managekhata.CustomInterestDuration
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.model.Payment
+import com.naruto.managekhata.ui.elements.DropdownWithDefaultValue
 import com.naruto.managekhata.ui.elements.OutlinedTextFieldWithError
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+
+const val TAG = "PaymentEntry"
+
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PaymentEntry(
     invoiceId: String? = null,
+    paymentId: String ?= null,
     interestPercent: Double = 0.0,
     dueDate: Long = 0L,
     dueAmount: Double = 0.0,
@@ -49,7 +59,9 @@ fun PaymentEntry(
     paymentEntryViewModel: PaymentEntryViewModel = hiltViewModel()
 ) {
     val isNewInvoiceScreen = invoiceId==null
+    val isEditPayment = paymentId!=null
 
+    val options = CustomInterestDuration.entries
     var name by rememberSaveable { mutableStateOf("") }
     var amount by rememberSaveable { mutableStateOf("") }
     var days by rememberSaveable { mutableStateOf("") }
@@ -57,11 +69,27 @@ fun PaymentEntry(
     var selectedDate by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
     var isValidAmount by rememberSaveable { mutableStateOf(true) }
     var isValidPaymentDate by rememberSaveable { mutableStateOf(true) }
+    var remarks by rememberSaveable { mutableStateOf("") }
+    var duration by rememberSaveable { mutableStateOf(options[0]) }
+
+    LaunchedEffect(Unit) {
+        if (isEditPayment){
+            invoiceId?.let { invoiceId ->
+                paymentId?.let { paymentId ->
+                    paymentEntryViewModel.getPayment(invoiceId, paymentId){
+                        amount = it.amount.toString()
+                        selectedDate = it.date
+                    }
+                }
+            }
+        }
+    }
 
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance().apply { timeInMillis = selectedDate }
+
 
     val datePickerDialog = android.app.DatePickerDialog(
         context,
@@ -90,7 +118,14 @@ fun PaymentEntry(
                                 invoiceDate = selectedDate,
                                 dueAmount = amount.toDouble(),
                                 dueDate = getDueDate(selectedDate, days.toInt()),
-                                interestPercentage = interest.toDouble()
+                                interestPercentage = interest.toDouble(),
+                                interestDuration = duration.value,
+                                interestPerDay = (interest.toDouble()/ duration.days).also {
+                                    Log.i(TAG, "interest per day - ${interest.toDouble()}")
+                                    Log.i(TAG, "interest per day - ${duration.days}")
+                                    Log.i(TAG, "interest per day - $it")
+                                },
+                                remarks = remarks
                             )
                             paymentEntryViewModel.createInvoice(invoiceDetail) { popUp() }
                         }
@@ -103,9 +138,11 @@ fun PaymentEntry(
                                 dueDate
                             )
                             val payment = Payment(
+                                id = paymentId,
                                 amount = amount.toDouble(),
                                 interest = interestAmount,
-                                date = selectedDate
+                                date = selectedDate,
+                                remarks = remarks
                             )
                             invoiceId?.let {
                                 paymentEntryViewModel.createPayment(invoiceId, payment) { popUp() }
@@ -162,15 +199,26 @@ fun PaymentEntry(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-                OutlinedTextFieldWithError(
-                    value = interest,
-                    onValueChange = { interest = it},
-                    label = "Interest",
-                    isError = false,
-                    errorMessage = "",
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                Row {
+                    Column(modifier = Modifier.weight(0.5f)) {
+                        OutlinedTextFieldWithError(
+                            value = interest,
+                            onValueChange = { interest = it},
+                            label = "Interest",
+                            isError = false,
+                            errorMessage = "",
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(0.5f)) {
+                        DropdownWithDefaultValue(options, duration) {
+                            duration = it
+                        }
+                    }
+
+                }
             }
 
             OutlinedTextFieldWithError(
@@ -186,6 +234,20 @@ fun PaymentEntry(
                     }
                 },
                 enabled = false
+            )
+
+            OutlinedTextFieldWithError(
+                value = remarks,
+                onValueChange = {
+                    remarks = it
+                },
+                label = "Remarks",
+                isError = false,
+                errorMessage = "",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(112.dp),
+                singleLine = false
             )
         }
     }
