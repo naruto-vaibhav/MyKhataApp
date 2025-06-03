@@ -34,39 +34,39 @@ class InvoiceDetailViewModel @Inject constructor(private val storageService: Sto
         }.toMutableSet()
     }
 
-    fun addInvoiceDetailListener(invoiceId: String) {
+    fun addInvoiceDetailListener(customerId: String,invoiceId: String) {
         launchCatching {
-            storageService.addInvoiceDetailListener(invoiceId) {
-                Log.i(TAG, "getInvoiceDetail - $it")
+            storageService.addInvoiceDetailListener(customerId, invoiceId) {
+                Log.i(TAG, "addInvoiceDetailListener - $it")
                 _invoice.value = it
                 _isLoading.value = false
             }
         }
     }
 
-    fun deletePayments(invoiceId: String, paymentsId: List<String>) {
+    fun deletePayments(customerId: String,invoiceId: String, paymentsId: List<String>) {
         launchCatching {
-            paymentsId.forEach { launch { storageService.deletePayment(invoiceId, it) } }
+            paymentsId.forEach { launch { storageService.deletePayment(customerId, invoiceId, it) } }
         }
     }
 
-    fun addPaymentListener(invoiceId: String) {
+    fun addPaymentListener(customerId:String, invoiceId: String) {
         launchCatching {
-            storageService.addPaymentListener(invoiceId) {
+            storageService.addPaymentListener(customerId, invoiceId) {
                 _payments.value = it
                 val invoice = _invoice.value.copy(
                     dueAmount = _invoice.value.invoiceAmount - it.sumOf { payment-> payment.amount },
                     interestAmount = it.sumOf { payment-> payment.interest }
                 )
-                updateInvoice(invoice)
+                updateInvoice(customerId, invoice)
             }
         }
     }
 
-    private fun updateInvoice(invoice: Invoice){
+    private fun updateInvoice(customerId: String, invoice: Invoice){
         launchCatching {
-            storageService.updateInvoice(invoice)
-            Log.i(TAG, "getInvoiceDetail - $invoice")
+            storageService.updateInvoice(customerId, invoice)
+            Log.i(TAG, "updateInvoice - $invoice")
             _invoice.value = invoice
         }
     }
@@ -78,7 +78,6 @@ class InvoiceDetailViewModel @Inject constructor(private val storageService: Sto
     companion object {
         private const val TAG ="InvoiceDetailViewModel"
         private val DEFAULT_INVOICE = Invoice(
-            name = "Name",
             invoiceAmount = 0.0,
             invoiceDate = System.currentTimeMillis(),
             dueAmount = 0.0,

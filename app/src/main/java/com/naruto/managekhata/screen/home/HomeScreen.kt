@@ -3,7 +3,6 @@ package com.naruto.managekhata.screen.home
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,10 +16,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,14 +40,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.naruto.managekhata.model.Invoice
+import com.naruto.managekhata.model.Customer
 import com.naruto.managekhata.navigation.NavigationGraphComponent
-import com.naruto.managekhata.ui.theme.DateFormatter
+import com.naruto.managekhata.ui.elements.TwoInputTextDialog
 
 private const val TAG = "HomeScreen"
 
@@ -63,25 +58,25 @@ fun HomeScreen(
     restartApp: (NavigationGraphComponent) -> Unit,
     viewModel: HomeScreenViewModel = hiltViewModel()
 ){
-    val invoices by viewModel.invoiceFlow.collectAsState()
-    var showMenu by remember { mutableStateOf(false) }
-    var isDeleting by rememberSaveable { mutableStateOf(false) }
-    val deleteInvoiceIds = viewModel.deleteIdsFlow.collectAsState()
+    val customers by viewModel.customerFlow.collectAsState()
+    var showAddCustomerDialog by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) { viewModel.initialize(restartApp) }
+    LaunchedEffect(Unit) {
+        viewModel.initialize(restartApp)
+    }
 
     DisposableEffect(Unit) {
-        Log.i(TAG, "HomeScreen")
-        viewModel.addInvoiceListener()
+        Log.i(TAG, "DisposableEffect")
+        viewModel.addCustomersListener()
         onDispose {
-            Log.i(TAG, "HomeScreen- onDispose")
+            Log.i(TAG, "DisposableEffect- onDispose")
             viewModel.removeListener()
         }
     }
 
-    Log.i(TAG, "HomeScreen- Handle Back pressed")
-    HandleBackPressed(isDeleting) {
-        isDeleting = false
+    Log.i(TAG, "DisposableEffect- Handle Back pressed")
+    HandleBackPressed(showAddCustomerDialog) {
+        showAddCustomerDialog = false
     }
 
     Scaffold(
@@ -93,53 +88,35 @@ fun HomeScreen(
                 actionIconContentColor = colorScheme.onPrimary
                 ),
                 title = {
-                    if (isDeleting){
-                        Text("Select Invoices")
-                    }
-                    else{
-                        Text("Manage Khata")
-                    }
-                },
-                actions = {
-                    if (isDeleting) {
-                        DeleteActionMenu(
-                            deleteInvoiceIds.value.isNotEmpty(),
-                            {
-                                viewModel.deleteInvoices(deleteInvoiceIds.value.toList())
-                                isDeleting = false
-                            }) {
-                            isDeleting = false
-                        }
-                    }
-                    else{
-                        MainActionMenu(viewModel, showMenu,
-                            onClick = { showMenu = !showMenu },
-                            onDismiss = {showMenu = false},
-                            onDeleteRequest = { isDeleting = true }
-                            )
-                    }
+                    Text("Manage Khata")
                 },
 
             )
         },
         floatingActionButton = {
-            if (!isDeleting){
-                FloatingActionButton(onClick = { navigate(NavigationGraphComponent.NavNewInvoiceScreen) }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add New Invoice")
-                }
+            FloatingActionButton(onClick = { showAddCustomerDialog=true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add New Customer")
             }
         }
     ) { paddingValues ->
         Log.i(TAG, "recomposing invoice list")
-        InvoiceListView(
-            invoices,
-            deleteInvoiceIds.value,
+        if (showAddCustomerDialog){
+            TwoInputTextDialog(
+                title = "Add Customer",
+                onConfirm = { name, contactInfo ->
+                    showAddCustomerDialog = false
+                    viewModel.createCustomer(Customer(
+                        customerName = name,
+                        contactInfo = contactInfo
+                    ))
+                }
+            ) {
+                showAddCustomerDialog = false
+            }
+        }
+        CustomerListView(
+            customers,
             paddingValues,
-            isDeleting,
-            {
-                Log.i(TAG, "checking - $it")
-                viewModel.updateDeleteIdsFlow(it)
-            },
             navigate
         )
     }
@@ -154,21 +131,21 @@ private fun HandleBackPressed(isDeleting: Boolean, onBackPressed: ()->Unit){
     }
 }
 
-@Composable
-fun DeleteActionMenu(isDeletePossible: Boolean, onConfirmDelete:()->Unit, stopDelete: ()->Unit){
-    IconButton(enabled = isDeletePossible, onClick = { onConfirmDelete() }) {
-        Icon(
-            imageVector = Icons.Filled.Delete,
-            contentDescription = "Delete"
-        )
-    }
-    IconButton(onClick = { stopDelete() }) {
-        Icon(
-            imageVector = Icons.Filled.Close,
-            contentDescription = "Cross"
-        )
-    }
-}
+//@Composable
+//fun DeleteActionMenu(isDeletePossible: Boolean, onConfirmDelete:()->Unit, stopDelete: ()->Unit){
+//    IconButton(enabled = isDeletePossible, onClick = { onConfirmDelete() }) {
+//        Icon(
+//            imageVector = Icons.Filled.Delete,
+//            contentDescription = "Delete"
+//        )
+//    }
+//    IconButton(onClick = { stopDelete() }) {
+//        Icon(
+//            imageVector = Icons.Filled.Close,
+//            contentDescription = "Cross"
+//        )
+//    }
+//}
 
 @Composable
 fun MainActionMenu(
@@ -190,7 +167,7 @@ fun MainActionMenu(
         onDismissRequest = onDismiss
     ) {
         DropdownMenuItem(
-            text = { Text("Delete Invoice") },
+            text = { Text("Delete Customer") },
             onClick = {
                 onDismiss()
                 onDeleteRequest()
@@ -208,12 +185,9 @@ fun MainActionMenu(
 
 
 @Composable
-fun InvoiceListView(
-    items: List<Invoice>,
-    itemsChecked: Set<String>,
+fun CustomerListView(
+    items: List<Customer>,
     paddingValues: PaddingValues,
-    isDeleting: Boolean,
-    onToggleSwitch: (String)->Unit,
     navigate: (NavigationGraphComponent) -> Unit
 ) {
     Log.i(TAG, "InvoiceListView - recomposing")
@@ -225,49 +199,36 @@ fun InvoiceListView(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(items.size) { ind ->
-            InvoiceCard(modifier = Modifier.clickable {
-                if (!isDeleting) {
-                    items[ind].id?.let{
-                        navigate(NavigationGraphComponent.NavInvoiceDetailScreen(it))
-                    }
+            CustomerCard(modifier = Modifier.clickable {
+                items[ind].customerId?.let{
+                    navigate(NavigationGraphComponent.NavInvoiceListScreen(it, customerName = items[ind].customerName))
                 }
-            },items[ind], isDeleting, itemsChecked.contains(items[ind].id),
-                onToggleSwitch,
-            )
+            },items[ind])
         }
     }
 }
 
 @Composable
-private fun InvoiceCard(modifier: Modifier = Modifier, invoice: Invoice, isDeleting: Boolean, isChecked: Boolean, onToggle: (String) -> Unit){
+private fun CustomerCard(
+    modifier: Modifier = Modifier,
+    customer: Customer,
+) {
     OutlinedCard(modifier = modifier
         .wrapContentHeight()
         .fillMaxWidth()
-        .background(if (isDeleting) Color.LightGray else Color.White)
     ) {
-        Log.i(TAG, "${invoice.name} - $isChecked")
+        Log.i(TAG, "customer - $customer")
         Row(modifier = Modifier.padding(16.dp, 16.dp)) {
-            if (isDeleting){
-                Column {
-                    Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = {
-                            invoice.id?.let(onToggle)
-                        }
-                    )
-                }
-            }
             Column {
-                Text(invoice.name,
+                Text(customer.customerName,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Text(DateFormatter.toFormatDate(invoice.invoiceDate), fontSize = 12.sp)
             }
             Spacer(modifier=Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
-                Text("Due (Rs.)", modifier = Modifier.padding(bottom = 4.dp))
-                Text(invoice.dueAmount.toString())
+                Text("Total Due (Rs.)", modifier = Modifier.padding(bottom = 4.dp))
+                Text(customer.totalAmount.toString())
             }
         }
     }

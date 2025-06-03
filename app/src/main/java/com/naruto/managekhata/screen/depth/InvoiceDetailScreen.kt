@@ -63,6 +63,8 @@ private const val TAG = "InvoiceDetailScreen"
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun InvoiceDetailScreen(
+    customerId: String,
+    customerName: String,
     invoiceId: String,
     navigate: (NavigationGraphComponent) -> Unit,
     viewModel: InvoiceDetailViewModel = hiltViewModel()
@@ -73,8 +75,8 @@ fun InvoiceDetailScreen(
 
     DisposableEffect(Unit) {
         Log.i(TAG, "InvoiceDetailScreen")
-        viewModel.addInvoiceDetailListener(invoiceId)
-        viewModel.addPaymentListener(invoiceId)
+        viewModel.addInvoiceDetailListener(customerId, invoiceId)
+        viewModel.addPaymentListener(customerId, invoiceId)
         onDispose {
             Log.i(TAG, "InvoiceDetailScreen- onDispose")
             viewModel.removeListener()
@@ -95,13 +97,15 @@ fun InvoiceDetailScreen(
             CircularProgressIndicator(color = colorScheme.onBackground)
         }
     } else {
-        InvoiceDetail(invoiceId, viewModel, invoice.value, payments.value, navigate)
+        InvoiceDetail(customerId, customerName, invoiceId, viewModel, invoice.value, payments.value, navigate)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class )
 @Composable
 private fun InvoiceDetail(
+    customerId: String,
+    customerName: String,
     invoiceId: String,
     viewModel: InvoiceDetailViewModel,
     invoice: Invoice,
@@ -128,7 +132,7 @@ private fun InvoiceDetail(
                 ),
                 title = {
                     Text(
-                        invoice.name,
+                        customerName
                     )
                     Spacer(
                         modifier = Modifier
@@ -150,7 +154,7 @@ private fun InvoiceDetail(
                     }
                     else if (isDeleting) {
                         DeleteActionMenu(deletePaymentIds.value.isNotEmpty(), {
-                            viewModel.deletePayments(invoiceId, deletePaymentIds.value.toList())
+                            viewModel.deletePayments(customerId, invoiceId, deletePaymentIds.value.toList())
                         }) {
                             isDeleting = false
                         }
@@ -177,6 +181,8 @@ private fun InvoiceDetail(
                     onClick = {
                         navigate(
                             NavigationGraphComponent.NavNewPaymentScreen(
+                                customerId,
+                                customerName,
                                 invoice.id ?: invoiceId,
                                 invoice.interestPerDay,
                                 invoice.dueDate,
@@ -206,7 +212,7 @@ private fun InvoiceDetail(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Customer: ${invoice.name}")
+                    Text("Customer: ${customerName}")
                     Text("Invoice Date: ${DateFormatter.toFormatDate(invoice.invoiceDate)}")
                     Text("Due Date: ${DateFormatter.toFormatDate(invoice.dueDate)}")
                     Text("Loan Amount: ₹${invoice.invoiceAmount}")
@@ -221,6 +227,8 @@ private fun InvoiceDetail(
             }){ paymentId, amount ->
                 navigate(
                     NavigationGraphComponent.EditPaymentScreen(
+                        customerId,
+                        customerName,
                         invoice.id ?: invoiceId,
                         paymentId,
                         invoice.interestPerDay,

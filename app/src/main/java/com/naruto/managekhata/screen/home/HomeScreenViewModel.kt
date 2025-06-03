@@ -2,7 +2,7 @@ package com.naruto.managekhata.screen.home
 
 import android.util.Log
 import com.naruto.managekhata.MainViewModel
-import com.naruto.managekhata.model.Invoice
+import com.naruto.managekhata.model.Customer
 import com.naruto.managekhata.navigation.NavigationGraphComponent
 import com.naruto.managekhata.service.AccountService
 import com.naruto.managekhata.service.StorageService
@@ -15,7 +15,7 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val accountService: AccountService,
     private val storageService: StorageService):MainViewModel() {
-    val invoiceFlow = MutableStateFlow<List<Invoice>>(emptyList())
+    val customerFlow = MutableStateFlow<List<Customer>>(emptyList())
 
     private val _deleteIdsFlow = MutableStateFlow<MutableSet<String>>(mutableSetOf())
     val deleteIdsFlow = _deleteIdsFlow
@@ -36,23 +36,29 @@ class HomeScreenViewModel @Inject constructor(
 
     fun logout() = launchCatching { accountService.signOut() }
 
-    fun addInvoiceListener(){
+    fun createCustomer(customer: Customer){
         launchCatching {
-            storageService.addInvoiceListener {
+            storageService.createCustomer(customer)
+        }
+    }
+
+    fun addCustomersListener(){
+        launchCatching {
+            storageService.addCustomerListListener {
                 Log.i(TAG, "addInvoiceListener - $it")
-                invoiceFlow.value = it
+                customerFlow.value = it
             }
         }
     }
 
-    fun deleteInvoices(invoicesId: List<String>) {
+    fun deleteCustomer(customersId: List<String>) {
         launchCatching {
-            invoicesId.forEach { launch { storageService.deleteInvoice(it) } }
+            customersId.forEach { launch { storageService.deleteCustomer(it) } }
         }
     }
 
     fun removeListener(){
-        storageService.removeInvoiceListener()
+        storageService.removeCustomerListListener()
     }
     companion object {
         const val TAG = "HomeScreenViewModel"

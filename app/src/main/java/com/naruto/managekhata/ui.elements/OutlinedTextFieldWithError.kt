@@ -19,12 +19,12 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun OutlinedTextFieldWithError(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    isError: Boolean,
-    errorMessage: String,
-    modifier: Modifier,
+    isError: Boolean = false,
+    errorMessage: String = "",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     trailingIcon: @Composable (() -> Unit)? = null,
     enabled: Boolean = true,
@@ -73,6 +73,5 @@ fun OutlinedTextFieldWithErrorPreview() {
         label = "Enter Text",
         isError = false,
         errorMessage = "Please Enter correct text",
-        Modifier
     )
 }

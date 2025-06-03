@@ -8,6 +8,7 @@ import com.naruto.managekhata.AppState
 import com.naruto.managekhata.screen.LoginScreen
 import com.naruto.managekhata.screen.depth.InvoiceDetailScreen
 import com.naruto.managekhata.screen.home.HomeScreen
+import com.naruto.managekhata.screen.invoice.InvoiceListScreen
 import com.naruto.managekhata.screen.launch.SplashScreen
 import com.naruto.managekhata.screen.payment.PaymentEntry
 
@@ -19,8 +20,20 @@ fun NavGraphBuilder.navGraph(appState: AppState){
         )
     }
 
+    composable<NavigationGraphComponent.NavInvoiceListScreen> {
+        val arg = it.toRoute<NavigationGraphComponent.NavInvoiceListScreen>()
+        InvoiceListScreen(
+            customerId = arg.customerId,
+            customerName = arg.customerName,
+            navigate = { route -> appState.navigate(route) }
+        )
+    }
+
     composable<NavigationGraphComponent.NavNewInvoiceScreen> {
+        val arg = it.toRoute<NavigationGraphComponent.NavNewInvoiceScreen>()
         PaymentEntry(
+            customerId = arg.customerId,
+            customerName = arg.customerName,
             popUp = { appState.popUp() }
         )
     }
@@ -28,6 +41,8 @@ fun NavGraphBuilder.navGraph(appState: AppState){
     composable<NavigationGraphComponent.NavInvoiceDetailScreen> {
         val arg = it.toRoute<NavigationGraphComponent.NavInvoiceDetailScreen>()
         InvoiceDetailScreen (
+            customerId = arg.customerId,
+            customerName = arg.customerName,
             invoiceId = arg.invoiceId,
             navigate = { route -> appState.navigate(route) }
         )
@@ -36,6 +51,8 @@ fun NavGraphBuilder.navGraph(appState: AppState){
     composable<NavigationGraphComponent.NavNewPaymentScreen> {
         val arg = it.toRoute<NavigationGraphComponent.NavNewPaymentScreen>()
         PaymentEntry(
+            customerId = arg.customerId,
+            customerName = arg.customerName,
             invoiceId = arg.invoiceId,
             interestPercent = arg.interestPercent,
             dueDate = arg.dueDate,
@@ -46,6 +63,8 @@ fun NavGraphBuilder.navGraph(appState: AppState){
     composable<NavigationGraphComponent.EditPaymentScreen> {
         val arg = it.toRoute<NavigationGraphComponent.EditPaymentScreen>()
         PaymentEntry(
+            customerId = arg.customerId,
+            customerName = arg.customerName,
             invoiceId = arg.invoiceId,
             paymentId = arg.paymentId,
             interestPercent = arg.interestPercent,

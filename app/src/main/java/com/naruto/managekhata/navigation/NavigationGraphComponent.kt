@@ -14,14 +14,17 @@ sealed class NavigationGraphComponent {
     data object NavHomeScreen : NavigationGraphComponent()
 
     @Serializable
-    data object NavNewInvoiceScreen : NavigationGraphComponent()
+    data class NavInvoiceListScreen(val customerId: String, val customerName: String) : NavigationGraphComponent()
 
     @Serializable
-    data class NavNewPaymentScreen(val invoiceId: String, val interestPercent: Double, val dueDate: Long, val dueAmount: Double) : NavigationGraphComponent()
+    data class NavNewInvoiceScreen(val customerId: String, val customerName: String) : NavigationGraphComponent()
 
     @Serializable
-    data class EditPaymentScreen(val invoiceId: String, val paymentId:String, val interestPercent: Double, val dueDate: Long, val dueAmount: Double) : NavigationGraphComponent()
+    data class NavInvoiceDetailScreen(val customerId: String, val customerName: String, val invoiceId: String) : NavigationGraphComponent()
 
     @Serializable
-    data class NavInvoiceDetailScreen(val invoiceId: String) : NavigationGraphComponent()
+    data class NavNewPaymentScreen(val customerId: String, val customerName: String, val invoiceId: String, val interestPercent: Double, val dueDate: Long, val dueAmount: Double) : NavigationGraphComponent()
+
+    @Serializable
+    data class EditPaymentScreen(val customerId: String, val customerName: String, val invoiceId: String, val paymentId:String, val interestPercent: Double, val dueDate: Long, val dueAmount: Double) : NavigationGraphComponent()
 }

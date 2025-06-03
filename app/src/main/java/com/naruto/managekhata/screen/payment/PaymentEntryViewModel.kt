@@ -9,28 +9,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PaymentEntryViewModel @Inject constructor(private val storageService: StorageService): MainViewModel() {
-    fun createInvoice(invoice: Invoice, onSuccess: ()->Unit){
+    fun createInvoice(customerId:String,invoice: Invoice, onSuccess: ()->Unit){
         launchCatching {
-            storageService.createInvoice(invoice)
-            onSuccess.invoke()
-        }
-    }
-    fun createPayment(invoiceId: String, payment: Payment,  onSuccess: ()->Unit){
-        launchCatching {
-            storageService.createPayment(invoiceId, payment)
+            storageService.createInvoice(customerId,invoice)
             onSuccess.invoke()
         }
     }
 
-    fun getPayment(invoiceId:String, paymentId: String,  onSuccess: (Payment)->Unit){
+    fun createPayment(customerId: String, invoiceId: String, payment: Payment,  onSuccess: ()->Unit){
         launchCatching {
-            storageService.getPayment(invoiceId, paymentId)?.let(onSuccess)
+            storageService.createPayment(customerId, invoiceId, payment)
+            onSuccess.invoke()
         }
     }
 
-    fun getInvoice(invoiceId: String, onSuccess: (Invoice)->Unit){
+    fun getPayment(customerId: String, invoiceId:String, paymentId: String,  onSuccess: (Payment)->Unit){
         launchCatching {
-            storageService.getInvoiceDetail(invoiceId)?.let(onSuccess)
+            storageService.getPayment(customerId, invoiceId, paymentId)?.let(onSuccess)
+        }
+    }
+
+    fun getInvoice(customerId: String, invoiceId: String, onSuccess: (Invoice)->Unit){
+        launchCatching {
+            storageService.getInvoiceDetail(customerId, invoiceId)?.let(onSuccess)
         }
     }
 }
