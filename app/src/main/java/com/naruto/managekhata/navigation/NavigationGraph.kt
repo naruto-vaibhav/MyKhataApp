@@ -25,7 +25,8 @@ fun NavGraphBuilder.navGraph(appState: AppState){
         InvoiceListScreen(
             customerId = arg.customerId,
             customerName = arg.customerName,
-            navigate = { route -> appState.navigate(route) }
+            navigate = { route -> appState.navigate(route) },
+            popUp = { appState.popUp() }
         )
     }
 

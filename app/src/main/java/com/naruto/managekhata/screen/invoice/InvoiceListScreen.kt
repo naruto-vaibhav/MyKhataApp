@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.naruto.managekhata.Formatter.toBigString
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.navigation.NavigationGraphComponent
 import com.naruto.managekhata.ui.theme.DateFormatter
@@ -59,6 +60,7 @@ fun InvoiceListScreen(
     customerId: String,
     customerName: String,
     navigate: (NavigationGraphComponent) -> Unit,
+    popUp: () -> Unit,
     viewModel: InvoiceListScreenViewModel = hiltViewModel()
 ) {
     val invoices by viewModel.invoiceFlow.collectAsState()
@@ -116,7 +118,10 @@ fun InvoiceListScreen(
                             showMenu,
                             onClick = { showMenu = !showMenu },
                             onDismiss = { showMenu = false },
-                            onDeleteCustomerRequest = { viewModel.deleteCustomer(customerId) },
+                            onDeleteCustomerRequest = {
+                                viewModel.deleteCustomer(customerId)
+                                popUp()
+                            },
                             onDeleteInvoiceRequest = { isDeleting = true }
                         )
                     }
@@ -300,7 +305,7 @@ private fun InvoiceCard(
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
                 Text("Due (Rs.)", modifier = Modifier.padding(bottom = 4.dp))
-                Text(invoice.dueAmount.toString())
+                Text(invoice.dueAmount.toBigString())
             }
         }
     }

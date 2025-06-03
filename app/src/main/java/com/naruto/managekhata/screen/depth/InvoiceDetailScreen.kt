@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.naruto.managekhata.Formatter.toBigString
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.model.Payment
 import com.naruto.managekhata.navigation.NavigationGraphComponent
@@ -212,13 +213,13 @@ private fun InvoiceDetail(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Customer: ${customerName}")
+                    Text("Customer: $customerName")
                     Text("Invoice Date: ${DateFormatter.toFormatDate(invoice.invoiceDate)}")
                     Text("Due Date: ${DateFormatter.toFormatDate(invoice.dueDate)}")
-                    Text("Loan Amount: ₹${invoice.invoiceAmount}")
-                    Text("Due Amount: ₹${invoice.dueAmount}")
+                    Text("Loan Amount: ₹${invoice.invoiceAmount.toBigString()}")
+                    Text("Due Amount: ₹${invoice.dueAmount.toBigString()}")
                     Text("Interest: ${invoice.interestPercentage}%/ ${invoice.interestDuration}")
-                    Text("Net Interest Amount: ₹${invoice.interestAmount}")
+                    Text("Net Interest Amount: ₹${invoice.interestAmount.toBigString()}")
                     Text("Remarks: ${invoice.remarks}")
                 }
             }
@@ -246,7 +247,11 @@ private fun InvoiceDetail(
 @Preview
 @Composable
 fun PaymentListPreview(){
-    PaymentList(emptyList(), true, true,{_ -> true},{}) {_, _ -> Unit }
+    PaymentList(emptyList(),
+        isDeleting = true,
+        isEditing = true,
+        isItemChecked = { _ -> true},
+        onToggle = {}) { _, _ -> }
 }
 
 @Composable
@@ -402,12 +407,12 @@ private fun PaymentCard(
                 Row {
                     Text("Amount")
                     Spacer(modifier = Modifier.weight(1f))
-                    Text("${payment.amount}")
+                    Text(payment.amount.toBigString())
                 }
                 Row( horizontalArrangement = Arrangement.End) {
                     Text("Interest")
                     Spacer(modifier = Modifier.weight(1f))
-                    Text("${payment.interest}")
+                    Text(payment.interest.toBigString())
                 }
             }
             if (isEditing) {
@@ -417,21 +422,6 @@ private fun PaymentCard(
             }
         }
     }
-
-//    Row(modifier = Modifier.padding(16.dp, 16.dp)) {
-//        Column(modifier = Modifier.weight(0.75f)) {
-//            Text(invoice.name,
-//                fontSize = 18.sp,
-//                modifier = Modifier.padding(bottom = 4.dp)
-//            )
-//            Text(invoice.date.toString(), fontSize = 12.sp)
-//        }
-//        Column(modifier = Modifier.weight(0.25f),
-//            horizontalAlignment = Alignment.End) {
-//            Text("Due (Rs.)", modifier = Modifier.padding(bottom = 4.dp))
-//            Text(invoice.dueAmount.toString())
-//        }
-//    }
 }
 
 @Preview

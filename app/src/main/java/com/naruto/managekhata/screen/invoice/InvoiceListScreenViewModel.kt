@@ -6,9 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import com.naruto.managekhata.MainViewModel
 import com.naruto.managekhata.model.Customer
 import com.naruto.managekhata.model.Invoice
-import com.naruto.managekhata.screen.depth.InvoiceDetailViewModel
-import com.naruto.managekhata.screen.depth.InvoiceDetailViewModel.Companion
-import com.naruto.managekhata.service.AccountService
 import com.naruto.managekhata.service.StorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InvoiceListScreenViewModel @Inject constructor(
-    private val accountService: AccountService,
     private val storageService: StorageService):MainViewModel() {
 
 
@@ -32,7 +28,9 @@ class InvoiceListScreenViewModel @Inject constructor(
 
 
     fun deleteCustomer(customerId: String){
-        TODO("Implement Delete Customer")
+        launchCatching {
+            storageService.deleteCustomer(customerId)
+        }
     }
 
     fun updateDeleteIdsFlow(id:String){

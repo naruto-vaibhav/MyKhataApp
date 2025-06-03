@@ -35,13 +35,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.naruto.managekhata.CustomInterestDuration
+import com.naruto.managekhata.Formatter.toBigString
 import com.naruto.managekhata.model.Invoice
 import com.naruto.managekhata.model.Payment
 import com.naruto.managekhata.ui.elements.DropdownWithDefaultValue
@@ -81,7 +81,7 @@ fun PaymentEntry(
     var isValidAmount by rememberSaveable { mutableStateOf(true) }
     var remarks by rememberSaveable { mutableStateOf("") }
     var duration by rememberSaveable { mutableStateOf(options[0]) }
-    var heading = remember {
+    val heading = remember {
         if (invoiceId == null) "New Invoice for $customerName" else {
             if (isEditPayment) "Edit Payment for $customerName"
             else "New Payment for $customerName"
@@ -93,7 +93,7 @@ fun PaymentEntry(
             invoiceId?.let { invoiceId ->
                 paymentId?.let { paymentId ->
                     paymentEntryViewModel.getPayment(customerId, invoiceId, paymentId) {
-                        amount = it.amount.toString()
+                        amount = it.amount.toBigString()
                         selectedDate = it.date
                     }
                 }
@@ -282,7 +282,7 @@ private fun getDueDate(invoiceDate: Long, days: Int): Long {
     return dueDate.toInstant().toEpochMilli()
 }
 
-fun Int.toTimeMillis() = this * 24 * 60 * 60 * 1000
+//fun Int.toTimeMillis() = this * 24 * 60 * 60 * 1000
 
 private fun getInterestAmount(
     paymentAmount: Double, interest: Double, paymentDate: Long, dueDate: Long
